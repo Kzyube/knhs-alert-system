@@ -35,20 +35,19 @@
             overflow: hidden; 
         }
 
-        /* --- APP HEADER --- */
+        /* HEADER */
         header {
             background: var(--surface);
             padding: 15px 20px;
             display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 2px 15px rgba(0,0,0,0.05);
             z-index: 1001;
-            padding-top: max(15px, env(safe-area-inset-top)); 
         }
         .app-title { font-weight: 800; font-size: 18px; color: var(--primary); letter-spacing: -0.5px; }
         .app-status { font-size: 12px; font-weight: 600; color: var(--success); display: flex; align-items: center; gap: 6px; }
         .pulse-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
 
-        /* --- MAIN CONTENT --- */
+        /* MAIN */
         #main-container {
             flex: 1; padding: 20px;
             overflow-y: auto; 
@@ -56,17 +55,15 @@
             padding-bottom: 40px;
         }
 
-        /* --- MODERN CARDS --- */
         .app-card {
             background: var(--surface);
             border-radius: 24px;
             padding: 20px;
             box-shadow: var(--shadow);
-            transition: transform 0.2s;
             border: 1px solid rgba(0,0,0,0.02);
         }
 
-        /* --- MAP WIDGET --- */
+        /* MAP */
         #map-container {
             height: 350px; width: 100%;
             border-radius: 20px; overflow: hidden;
@@ -85,7 +82,6 @@
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* --- RE-CENTER BUTTON --- */
         .btn-recenter {
             position: absolute; top: 15px; right: 15px;
             background: white; width: 40px; height: 40px;
@@ -94,7 +90,7 @@
             color: var(--primary); font-size: 18px; cursor: pointer;
         }
 
-        /* --- SAFETY CONTROLS --- */
+        /* BUTTONS */
         .btn-large {
             width: 100%; border: none; padding: 18px;
             border-radius: 18px; font-size: 16px; font-weight: 700;
@@ -102,27 +98,21 @@
             cursor: pointer; transition: all 0.2s;
             box-shadow: 0 4px 15px rgba(46, 213, 115, 0.3);
         }
-        
         .btn-safe { background: var(--success); color: white; }
-        .btn-safe:active { transform: scale(0.97); }
         .btn-safe.sent { background: #26af61; opacity: 0.8; cursor: default; }
 
-        /* --- INPUT AREA --- */
+        /* INPUT */
         .input-wrapper {
             background: #f8f9fa; border-radius: 16px;
             padding: 5px; margin-top: 15px;
             display: flex; align-items: center;
             border: 1px solid transparent;
-            transition: 0.3s;
         }
-        .input-wrapper:focus-within { background: white; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
-        
         .note-input {
             flex: 1; border: none; background: transparent;
             padding: 12px; font-family: 'Inter'; font-size: 14px;
             outline: none; resize: none; height: 44px;
         }
-        
         .btn-send {
             background: var(--primary); color: white;
             border: none; width: 40px; height: 40px;
@@ -130,12 +120,11 @@
             cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
 
-        /* --- EMERGENCY STATE --- */
+        /* EMERGENCY CARD */
         #danger-card { display: none; border-left: 6px solid var(--danger); }
         .danger-header { color: var(--danger); display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: 800; font-size: 20px; }
-        .guide-img { width: 100%; height: 140px; object-fit: cover; border-radius: 12px; margin-top: 10px; }
 
-        /* --- TOAST NOTIFICATION --- */
+        /* TOAST */
         #toast {
             position: fixed; top: -60px; left: 50%; transform: translateX(-50%);
             background: #333; color: white; padding: 12px 24px;
@@ -145,7 +134,7 @@
             display: flex; align-items: center; gap: 10px;
         }
 
-        /* --- LOGIN MODAL --- */
+        /* LOGIN MODAL */
         #login-modal {
             position: fixed; inset: 0; background: rgba(255,255,255,0.95);
             backdrop-filter: blur(5px); z-index: 4000;
@@ -157,7 +146,6 @@
             border-radius: 12px; margin-bottom: 15px; font-size: 16px;
             text-align: center; font-weight: 600; color: var(--primary);
         }
-        .login-input:focus { outline: 2px solid var(--primary); background: white; }
 
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
@@ -203,7 +191,6 @@
                 <span id="alert-type-text">EMERGENCY</span>
             </div>
             <p id="alert-message-text" style="color: var(--text-dark);">Please proceed to the nearest safe zone immediately.</p>
-            <img id="guide-img" class="guide-img" src="" style="display:none;">
         </div>
 
         <div id="safe-card" class="app-card">
@@ -234,32 +221,28 @@
         const dangerCard = document.getElementById('danger-card');
         const alertTitle = document.getElementById('alert-type-text');
         const alertMsg = document.getElementById('alert-message-text');
-        const guideImg = document.getElementById('guide-img');
         const siren = document.getElementById('siren');
         const distDisplay = document.getElementById('dist-display');
 
         let map, userMarker, destMarker, routeLine;
-        let isSystemActive = false;
 
-        // --- 1. KNHS SAFE ZONES (Updated) ---
+        // --- KNHS SAFE ZONES (Your Provided Coordinates) ---
         const SAFE_ZONES = [
             [7.100589893149529, 124.82393056927546, "Principal's Office Front"],
             [7.100077551009359, 124.82369094608939, "Mendoza Covered Court"],
             [7.1001461901808565, 124.82430112059413, "Tejada Covered Court"]
         ];
 
-        // KNHS Center (For initial view)
+        // Center on KNHS
         const KNHS_LAT = 7.100263749131452;
         const KNHS_LNG = 124.82403728169497;
 
-        // --- INIT ---
         window.onload = function() {
             initMap();
             activateGPS();
             checkLogin();
         };
 
-        // --- MAP LOGIC ---
         function initMap() {
             map = L.map('map', { zoomControl: false }).setView([KNHS_LAT, KNHS_LNG], 19);
             
@@ -268,7 +251,7 @@
             }).addTo(map);
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
 
-            // PLOT ALL SAFE ZONES IMMEDIATELY
+            // Add Safe Zone Markers
             const safeIcon = L.divIcon({
                 className: 'dest-marker',
                 html: `<div style="font-size:24px; color:#2ed573; text-shadow:0 2px 5px rgba(0,0,0,0.8);"><i class="fas fa-map-marker-alt"></i></div>`,
@@ -335,7 +318,6 @@
             distDisplay.style.display = 'flex';
         }
 
-        // --- AUTH & DATA ---
         let studentID = localStorage.getItem('knhs_student_id');
 
         function checkLogin() {
@@ -355,7 +337,6 @@
             } else { showToast("Please enter valid ID"); }
         }
 
-        // --- BUTTON ACTIONS ---
         function markAsSafe() {
             if (!studentID) return showToast("Please Login First");
             
@@ -384,7 +365,6 @@
             const originalIcon = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-            console.log("Sending Note:", note);
             socket.emit('student-note', { 
                 id: studentID, 
                 message: note,
@@ -398,7 +378,6 @@
             }, 600);
         }
 
-        // --- ALERTS ---
         socket.on('receive-alert', (data) => {
             if (data.type === 'SAFE') {
                 dangerCard.style.display = 'none';
@@ -411,11 +390,12 @@
                 alertTitle.innerText = `${data.type} ALERT`;
                 alertMsg.innerText = data.message;
                 
-                // --- SIMPLE LOGIC: Default to Principal's Office or Courts ---
-                let bestZone = SAFE_ZONES[0]; // Principal's Office (Default Open Space)
+                // Logic: Default to Principal's Office or Courts
+                let bestZone = SAFE_ZONES[0]; 
                 
+                // If Flood, go to Mendoza Court (Covered/Higher)
                 if (data.type === 'FLOOD') {
-                    bestZone = SAFE_ZONES[1]; // Mendoza Court (Covered)
+                    bestZone = SAFE_ZONES[1];
                 }
 
                 const newDest = L.latLng(bestZone[0], bestZone[1]);
