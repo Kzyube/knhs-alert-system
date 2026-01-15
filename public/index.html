@@ -42,6 +42,7 @@
             display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 2px 15px rgba(0,0,0,0.05);
             z-index: 1001;
+            padding-top: max(15px, env(safe-area-inset-top)); 
         }
         .app-title { font-weight: 800; font-size: 18px; color: var(--primary); letter-spacing: -0.5px; }
         .app-status { font-size: 12px; font-weight: 600; color: var(--success); display: flex; align-items: center; gap: 6px; }
@@ -226,11 +227,19 @@
 
         let map, userMarker, destMarker, routeLine;
 
-        // --- KNHS SAFE ZONES (Your Provided Coordinates) ---
+        // --- 1. COORDINATES FOR LOGIC ---
+        // I created this object so the 'receive-alert' function knows where to look.
+        const LOCATIONS = {
+            PRINCIPAL_FRONT: [7.100589893149529, 124.82393056927546], // Open Space
+            MENDOZA_COURT:   [7.100077551009359, 124.82369094608939], // Covered
+            TEJADA_COURT:    [7.1001461901808565, 124.82430112059413] // Covered
+        };
+
+        // --- 2. COORDINATES FOR MARKERS (Visual) ---
         const SAFE_ZONES = [
-            [7.100589893149529, 124.82393056927546, "Principal's Office Front"],
-            [7.100077551009359, 124.82369094608939, "Mendoza Covered Court"],
-            [7.1001461901808565, 124.82430112059413, "Tejada Covered Court"]
+            [LOCATIONS.PRINCIPAL_FRONT[0], LOCATIONS.PRINCIPAL_FRONT[1], "Principal's Office Front"],
+            [LOCATIONS.MENDOZA_COURT[0],   LOCATIONS.MENDOZA_COURT[1],   "Mendoza Covered Court"],
+            [LOCATIONS.TEJADA_COURT[0],    LOCATIONS.TEJADA_COURT[1],    "Tejada Covered Court"]
         ];
 
         // Center on KNHS
@@ -378,6 +387,7 @@
             }, 600);
         }
 
+        // --- ALERTS LOGIC ---
         socket.on('receive-alert', (data) => {
             if (data.type === 'SAFE') {
                 dangerCard.style.display = 'none';
@@ -390,12 +400,13 @@
                 alertTitle.innerText = `${data.type} ALERT`;
                 alertMsg.innerText = data.message;
                 
-                // Logic: Default to Principal's Office or Courts
-                let bestZone = SAFE_ZONES[0]; 
+                // --- LOGIC: CHOOSE DESTINATION ---
+                // Default: Principal's Office (Open Space)
+                let bestZone = LOCATIONS.PRINCIPAL_FRONT; 
                 
                 // If Flood, go to Mendoza Court (Covered/Higher)
                 if (data.type === 'FLOOD') {
-                    bestZone = SAFE_ZONES[1];
+                    bestZone = LOCATIONS.MENDOZA_COURT;
                 }
 
                 const newDest = L.latLng(bestZone[0], bestZone[1]);
