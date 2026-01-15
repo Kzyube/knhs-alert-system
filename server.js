@@ -7,10 +7,10 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
-// --- FIX: ALLOW MOBILE APP CONNECTION (CORS) ---
+// --- ALLOW MOBILE APP & LAPTOP CONNECTION (CORS) ---
 const io = socketIo(server, {
     cors: {
-        origin: "*", // Allow all phones/websites to connect
+        origin: "*", 
         methods: ["GET", "POST"]
     }
 });
@@ -24,7 +24,6 @@ app.use(session({
     saveUninitialized: true
 }));
 
-// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- 2. STORAGE ---
@@ -71,7 +70,6 @@ io.on('connection', (socket) => {
 
     // Admin sends Alert
     socket.on('broadcast-alert', (data) => {
-        console.log("Admin triggered:", data.type);
         const timestamp = new Date().toLocaleTimeString();
         const logEntry = { type: data.type, time: timestamp, message: data.message };
 

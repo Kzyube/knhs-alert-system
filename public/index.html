@@ -26,7 +26,6 @@
             display: flex; flex-direction: column; height: 100vh;
         }
 
-        /* --- HEADER --- */
         header {
             background-color: var(--school-blue); color: var(--white);
             padding: 15px; display: flex; align-items: center;
@@ -36,7 +35,6 @@
         .school-info h1 { margin: 0; font-size: 16px; font-weight: 700; }
         .school-info p { margin: 0; font-size: 12px; opacity: 0.9; }
 
-        /* --- DASHBOARD --- */
         #main-container {
             flex: 1; padding: 15px;
             overflow-y: auto; position: relative;
@@ -58,7 +56,6 @@
         .danger-state .status-icon { color: var(--danger-red); font-size: 50px; animation: pulse-red 1s infinite; }
         .danger-state h2 { color: var(--danger-red); text-transform: uppercase; font-weight: 800; margin: 10px 0; }
 
-        /* --- EMERGENCY INTERFACE --- */
         #emergency-interface {
             display: none; height: 100%; flex-direction: column; gap: 15px;
         }
@@ -74,7 +71,7 @@
         #map-container {
             flex: 1; border-radius: 12px; overflow: hidden;
             border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            position: relative; min-height: 300px; /* Ensured Height */
+            position: relative; min-height: 300px; 
         }
         #map { width: 100%; height: 100%; }
 
@@ -86,26 +83,6 @@
             font-size: 14px; color: var(--school-blue);
         }
 
-        /* --- ACTIVATE BUTTON --- */
-        #setup-overlay {
-            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-            z-index: 2000;
-        }
-        .btn-activate {
-            background-color: var(--school-blue); color: white; border: none;
-            padding: 12px 25px; border-radius: 30px; font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,51,102,0.3); cursor: pointer;
-            display: flex; align-items: center; gap: 10px;
-        }
-
-        footer { text-align: center; padding: 10px; font-size: 11px; color: #888; background: #fff; }
-
-        @keyframes pulse-red { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
-        
-        .dest-marker { text-align: center; color: white; text-shadow: 0 0 3px black; font-weight: bold; font-size: 12px; }
-
-        /* --- LOGIN MODAL --- */
         #login-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 51, 102, 0.95); z-index: 3000;
@@ -124,7 +101,6 @@
             border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
         }
 
-        /* --- SAFETY PANEL --- */
         .safety-panel {
             background: white; border-radius: 12px; padding: 20px; margin-top: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid #ffc107;
@@ -135,8 +111,6 @@
             cursor: pointer; transition: transform 0.2s; display: flex; justify-content: center; gap: 10px;
         }
         .btn-mark-safe:active { transform: scale(0.98); }
-        .btn-mark-safe.safe-active { background: #ccc; cursor: not-allowed; }
-
         .note-area {
             width: 100%; height: 60px; border: 1px solid #ddd; border-radius: 8px;
             padding: 10px; margin-top: 15px; font-family: 'Poppins'; box-sizing: border-box;
@@ -145,6 +119,28 @@
             background: var(--school-blue); color: white; border: none; padding: 8px 20px;
             border-radius: 20px; font-size: 12px; margin-top: 10px; float: right; cursor: pointer;
         }
+
+        #setup-overlay {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            z-index: 2000;
+        }
+        .btn-activate {
+            background-color: var(--school-blue); color: white; border: none;
+            padding: 12px 25px; border-radius: 30px; font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,51,102,0.3); cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        footer { text-align: center; padding: 10px; font-size: 11px; color: #888; background: #fff; }
+
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(51, 136, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(51, 136, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(51, 136, 255, 0); }
+        }
+
+        /* CUSTOM MARKER STYLE */
+        .dest-marker { text-align: center; color: white; text-shadow: 0 0 3px black; font-weight: bold; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -152,11 +148,12 @@
         <div class="login-box">
             <i class="fas fa-user-graduate" style="font-size: 40px; color: var(--school-blue); margin-bottom: 10px;"></i>
             <h2>Student Check-In</h2>
-            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Enter your Student ID to connect to the DRRM Network.</p>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">Enter your Student ID to connect.</p>
             <input type="text" id="student-id-input" class="login-input" placeholder="LRN / Student ID">
             <button class="btn-login" onclick="loginUser()">ENTER SYSTEM</button>
         </div>
     </div>
+
     <header>
         <div class="logo-area"><i class="fas fa-graduation-cap"></i></div>
         <div class="school-info">
@@ -170,7 +167,7 @@
             <div class="status-icon"><i class="fas fa-shield-alt"></i></div>
             <h2>SYSTEM ACTIVE</h2>
             <p>Status: <strong>Normal</strong></p>
-            <p style="font-size: 12px; color: #666;">Monitoring network...</p>
+            <p style="font-size: 12px; color: #666;">Locating you... (Drag Blue Dot to Adjust)</p>
             
             <div id="map-container" style="margin-top:20px; height:300px;">
                 <div id="map"></div>
@@ -204,7 +201,7 @@
                 </div>
                 <img id="guide-img" src="" alt="Guide" onerror="this.src='https://placehold.co/600x400?text=No+Image+Available'">
             </div>
-            </div>
+        </div>
     </div>
 
     <div id="setup-overlay">
@@ -234,7 +231,7 @@
         let map, userMarker, destMarker, routeLine;
         let isSystemActive = false;
 
-        // --- KNHS COORDINATES ---
+        // --- REAL COORDINATES FOR KABACAN NHS ---
         const KNHS_LAT = 7.100263749131452;
         const KNHS_LNG = 124.82403728169497;
         
@@ -243,30 +240,25 @@
             COURT_1:    [7.100166532874036, 124.82429162308269],
             OVAL:       [7.100203, 124.824066] 
         };
-        
-        const IMAGES = {
-            OPEN_SPACE: "open_space.jpg",
-            COURT_1:    "court_1.jpg",
-            OVAL:       "oval_guide.jpg"
-        };
 
-        // --- AUTO-START MAP ---
+        // --- 1. AUTO-START MAP ---
         window.onload = function() {
             initMap();
             checkLogin();
         };
 
         function initMap() {
-            // Initialize map immediately
             map = L.map('map').setView([KNHS_LAT, KNHS_LNG], 18);
             
+            // Satellite View
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri'
             }).addTo(map);
             
+            // Street Labels
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
 
-            // Add Default KNHS Marker
+            // Add School Marker
             const destIcon = L.divIcon({
                 className: 'dest-marker',
                 html: `<div style="font-size:30px; color:#28a745; text-shadow:0 0 5px black;"><i class="fas fa-map-marker-alt"></i></div>`,
@@ -282,14 +274,25 @@
             setupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CONNECTING...';
 
             if (navigator.geolocation) {
+                // FORCE HIGH ACCURACY FOR PHONES
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                };
+
                 navigator.geolocation.watchPosition(
                     (pos) => {
                         isSystemActive = true;
                         setupBtn.style.display = 'none';
                         updateUserLocation(pos.coords.latitude, pos.coords.longitude);
                     },
-                    (err) => { alert("GPS Access Required for Tracking"); setupBtn.innerHTML = "RETRY GPS"; },
-                    { enableHighAccuracy: true }
+                    (err) => { 
+                        console.log(err);
+                        alert("Please Enable GPS on your device settings."); 
+                        setupBtn.innerHTML = "RETRY GPS"; 
+                    },
+                    options
                 );
             } else { alert("GPS not supported"); }
         }
@@ -303,12 +306,26 @@
                     html: "<div style='background-color:#007bff; width:16px; height:16px; border-radius:50%; border:3px solid white; box-shadow:0 0 10px white; animation: pulse-blue 1.5s infinite;'></div>",
                     iconSize: [20, 20], iconAnchor: [10, 10]
                 });
-                userMarker = L.marker(userLatLng, {icon: userIcon}).addTo(map);
+                
+                // MAKE MARKER DRAGGABLE FOR TESTING
+                userMarker = L.marker(userLatLng, {
+                    icon: userIcon,
+                    draggable: true 
+                }).addTo(map);
+
+                // If user drags the marker, recalculate path
+                userMarker.on('dragend', function(event) {
+                    const marker = event.target;
+                    const position = marker.getLatLng();
+                    if(destMarker) drawDirectPath(position, destMarker.getLatLng());
+                });
+
             } else {
+                // Only auto-move if not dragging (prevents jitter)
                 userMarker.setLatLng(userLatLng);
             }
 
-            // If destination is set, draw line
+            // Draw line if destination is known
             if(destMarker) {
                 drawDirectPath(userLatLng, destMarker.getLatLng());
             }
@@ -316,6 +333,8 @@
 
         function drawDirectPath(start, end) {
             if(routeLine) map.removeLayer(routeLine);
+            
+            // This is the PATH LOGIC (Green Dashed Line)
             routeLine = L.polyline([start, end], {
                 color: '#28a745', weight: 6, opacity: 0.9, dashArray: '10, 10'
             }).addTo(map);
@@ -377,7 +396,6 @@
             let destCoords = LOCATIONS.COURT_1; 
             if (data.type === 'EARTHQUAKE' || data.type === 'FIRE') destCoords = LOCATIONS.OPEN_SPACE;
             
-            // Move Destination Marker
             const newDest = L.latLng(destCoords[0], destCoords[1]);
             destMarker.setLatLng(newDest);
             
