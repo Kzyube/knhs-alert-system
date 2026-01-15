@@ -32,7 +32,7 @@
             background-color: var(--bg);
             color: var(--text-dark);
             display: flex; flex-direction: column; height: 100vh;
-            overflow: hidden; /* Prevent scroll bounce */
+            overflow: hidden; 
         }
 
         /* --- APP HEADER --- */
@@ -68,7 +68,7 @@
 
         /* --- MAP WIDGET --- */
         #map-container {
-            height: 280px; width: 100%;
+            height: 350px; width: 100%;
             border-radius: 20px; overflow: hidden;
             position: relative;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
@@ -83,6 +83,15 @@
             font-size: 13px; font-weight: 600; z-index: 999;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             display: flex; align-items: center; gap: 8px;
+        }
+
+        /* --- RE-CENTER BUTTON --- */
+        .btn-recenter {
+            position: absolute; top: 15px; right: 15px;
+            background: white; width: 40px; height: 40px;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 1000;
+            color: var(--primary); font-size: 18px; cursor: pointer;
         }
 
         /* --- SAFETY CONTROLS --- */
@@ -126,7 +135,7 @@
         .danger-header { color: var(--danger); display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: 800; font-size: 20px; }
         .guide-img { width: 100%; height: 140px; object-fit: cover; border-radius: 12px; margin-top: 10px; }
 
-        /* --- TOAST NOTIFICATION (Replaces Alert) --- */
+        /* --- TOAST NOTIFICATION --- */
         #toast {
             position: fixed; top: -60px; left: 50%; transform: translateX(-50%);
             background: #333; color: white; padding: 12px 24px;
@@ -181,6 +190,7 @@
         <div class="app-card" style="padding: 0; border: none; background: transparent; box-shadow: none;">
             <div id="map-container">
                 <div id="map"></div>
+                <div class="btn-recenter" onclick="centerMap()"><i class="fas fa-crosshairs"></i></div>
                 <div id="dist-display" class="distance-pill" style="display:none;">
                     <i class="fas fa-location-arrow"></i> <span>Calculating...</span>
                 </div>
@@ -231,44 +241,53 @@
         let map, userMarker, destMarker, routeLine;
         let isSystemActive = false;
 
-        // --- LOCATION CONFIG ---
+        // --- 1. KNHS SAFE ZONES (Updated) ---
+        const SAFE_ZONES = [
+            [7.100589893149529, 124.82393056927546, "Principal's Office Front"],
+            [7.100077551009359, 124.82369094608939, "Mendoza Covered Court"],
+            [7.1001461901808565, 124.82430112059413, "Tejada Covered Court"]
+        ];
+
+        // KNHS Center (For initial view)
         const KNHS_LAT = 7.100263749131452;
         const KNHS_LNG = 124.82403728169497;
-        
-        const LOCATIONS = {
-            OPEN_SPACE: [7.100595643301358, 124.82393316416237],
-            COURT_1:    [7.100166532874036, 124.82429162308269],
-            OVAL:       [7.100203, 124.824066] 
-        };
-
-        const IMAGES = {
-            OPEN_SPACE: "open_space.jpg",
-            COURT_1:    "court_1.jpg",
-            OVAL:       "oval_guide.jpg"
-        };
 
         // --- INIT ---
         window.onload = function() {
             initMap();
-            activateGPS(); // Auto-start GPS
+            activateGPS();
             checkLogin();
         };
 
         // --- MAP LOGIC ---
         function initMap() {
-            map = L.map('map', { zoomControl: false }).setView([KNHS_LAT, KNHS_LNG], 18);
+            map = L.map('map', { zoomControl: false }).setView([KNHS_LAT, KNHS_LNG], 19);
             
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Esri'
             }).addTo(map);
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}').addTo(map);
 
-            const destIcon = L.divIcon({
+            // PLOT ALL SAFE ZONES IMMEDIATELY
+            const safeIcon = L.divIcon({
                 className: 'dest-marker',
-                html: `<div style="font-size:32px; color:#2ed573; text-shadow:0 2px 5px rgba(0,0,0,0.5);"><i class="fas fa-map-marker-alt"></i></div>`,
-                iconSize: [40, 40], iconAnchor: [20, 40]
+                html: `<div style="font-size:24px; color:#2ed573; text-shadow:0 2px 5px rgba(0,0,0,0.8);"><i class="fas fa-map-marker-alt"></i></div>`,
+                iconSize: [30, 30], iconAnchor: [15, 30]
             });
-            destMarker = L.marker([KNHS_LAT, KNHS_LNG], {icon: destIcon}).addTo(map);
+
+            SAFE_ZONES.forEach(zone => {
+                L.marker([zone[0], zone[1]], {icon: safeIcon})
+                 .addTo(map)
+                 .bindPopup(`<b>${zone[2]}</b><br>Safe Zone`);
+            });
+        }
+
+        function centerMap() {
+            if(userMarker) {
+                map.setView(userMarker.getLatLng(), 19);
+            } else {
+                map.setView([KNHS_LAT, KNHS_LNG], 19);
+            }
         }
 
         function activateGPS() {
@@ -289,15 +308,14 @@
                     html: "<div style='background-color:#3498db; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow:0 0 10px rgba(0,0,0,0.3);'></div>",
                     iconSize: [24, 24], iconAnchor: [12, 12]
                 });
-                // Draggable for Laptop Testing
                 userMarker = L.marker(userLatLng, {icon: userIcon, draggable: true}).addTo(map);
                 
                 userMarker.on('dragend', function(e) {
                     const pos = e.target.getLatLng();
                     if(destMarker) drawDirectPath(pos, destMarker.getLatLng());
                 });
+                map.setView(userLatLng, 19);
             } else {
-                // Only auto-update if not being dragged
                 if (!userMarker.dragging || !userMarker.dragging.enabled()) {
                     userMarker.setLatLng(userLatLng);
                 }
@@ -347,10 +365,8 @@
             
             const loc = userMarker ? userMarker.getLatLng() : {lat: null, lng: null};
             socket.emit('student-status', { id: studentID, status: 'SAFE', lat: loc.lat, lng: loc.lng });
-            
             showToast("Status: SAFE sent to Admin");
             
-            // Reset button after 5 seconds
             setTimeout(() => {
                 btn.innerHTML = '<i class="fas fa-check-circle"></i> I AM SAFE';
                 btn.classList.remove('sent');
@@ -364,20 +380,17 @@
             if (!studentID) return showToast("Please Login First");
             if (!note) return showToast("Message cannot be empty");
 
-            // VISUAL FEEDBACK
             const btn = document.querySelector('.btn-send');
             const originalIcon = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-            // DATA EMISSION
-            console.log("Sending Note:", note); // For Debugging
+            console.log("Sending Note:", note);
             socket.emit('student-note', { 
                 id: studentID, 
                 message: note,
                 timestamp: new Date().toLocaleTimeString()
             });
 
-            // RESET UI
             setTimeout(() => {
                 input.value = '';
                 btn.innerHTML = originalIcon;
@@ -398,22 +411,25 @@
                 alertTitle.innerText = `${data.type} ALERT`;
                 alertMsg.innerText = data.message;
                 
-                // Smart Destination
-                let destCoords = LOCATIONS.COURT_1; 
-                let imgKey = "COURT_1";
+                // --- SIMPLE LOGIC: Default to Principal's Office or Courts ---
+                let bestZone = SAFE_ZONES[0]; // Principal's Office (Default Open Space)
                 
-                if (data.type === 'EARTHQUAKE' || data.type === 'FIRE') {
-                    destCoords = LOCATIONS.OPEN_SPACE;
-                    imgKey = "OPEN_SPACE";
+                if (data.type === 'FLOOD') {
+                    bestZone = SAFE_ZONES[1]; // Mendoza Court (Covered)
                 }
 
-                if (IMAGES[imgKey]) {
-                    guideImg.src = IMAGES[imgKey];
-                    guideImg.style.display = 'block';
+                const newDest = L.latLng(bestZone[0], bestZone[1]);
+                
+                if(destMarker) {
+                    destMarker.setLatLng(newDest);
+                } else {
+                    const destIcon = L.divIcon({
+                        className: 'dest-marker',
+                        html: `<div style="font-size:32px; color:#2ed573;"><i class="fas fa-map-marker-alt"></i></div>`,
+                        iconSize: [40, 40], iconAnchor: [20, 40]
+                    });
+                    destMarker = L.marker(newDest, {icon: destIcon}).addTo(map);
                 }
-
-                const newDest = L.latLng(destCoords[0], destCoords[1]);
-                destMarker.setLatLng(newDest);
                 
                 if(userMarker) {
                     drawDirectPath(userMarker.getLatLng(), newDest);
@@ -427,7 +443,6 @@
             }
         });
 
-        // --- UI UTILS ---
         function showToast(msg) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
